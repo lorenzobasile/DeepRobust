@@ -36,8 +36,8 @@ class PGD(BaseAttack):
                      epsilon = 0.03,
                      num_steps = 40,
                      step_size = 0.01,
-                     clip_max = 1.0,
-                     clip_min = 0.0,
+                     clip_max = None,
+                     clip_min = None,
                      print_process = False
                      ):
         self.epsilon = epsilon
@@ -69,6 +69,10 @@ def pgd_attack(model,
     X_pgd = torch.tensor(imageArray).to(device).float()
     X_pgd.requires_grad = True
 
+    if clip_max == None and clip_min == None:
+        clip_max = np.inf
+        clip_min = -np.inf
+
     for i in range(num_steps):
 
         pred = model(X_pgd)
@@ -83,7 +87,7 @@ def pgd_attack(model,
 
         X_pgd = X_pgd + eta
         eta = torch.clamp(X_pgd.data - X.data, -epsilon, epsilon)
-
+	
         X_pgd = X.data + eta
         X_pgd = torch.clamp(X_pgd, clip_min, clip_max)
         X_pgd = X_pgd.detach()
