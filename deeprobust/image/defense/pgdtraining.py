@@ -120,7 +120,7 @@ class PGDtraining(BaseDefense):
                 print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}\tAccuracy:{:.2f}%'.format(
                     epoch, batch_idx * len(data), len(train_loader.dataset),
                        100. * batch_idx / len(train_loader), loss.item(), 100 * correct/(10*bs)))
-            correct = 0
+                correct = 0
 
 
     def test(self, model, device, test_loader):
