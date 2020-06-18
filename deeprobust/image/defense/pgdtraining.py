@@ -39,11 +39,13 @@ class PGDtraining(BaseDefense):
         device = torch.device(self.device)
 
         optimizer = optim.Adam(self.model.parameters(), self.lr)
+        scheduler = optim.lr_scheduler.ExponentialLR(optimizer=optimizer, gamma=self.gamma)
+
 
         save_model = True
         for epoch in range(1, self.epoch + 1):
             print(epoch, flush = True)
-            self.train(self.device, train_loader, optimizer, epoch)
+            self.train(self.device, train_loader, optimizer, epoch, scheduler)
             self.test(self.model, self.device, test_loader)
 
             if (self.save_model and epoch % 10 == 0):
@@ -65,7 +67,8 @@ class PGDtraining(BaseDefense):
                      num_steps = 40,
                      perturb_step_size = 0.01,
                      lr = 5e-4,
-                     momentum = 0.1):
+                     momentum = 0.1,
+                     gamma = 0.99):
         """
         :param epoch : int
             - pgd training epoch
@@ -81,6 +84,8 @@ class PGDtraining(BaseDefense):
             - learning rate for adversary training process
         :param momentum : float
             - parameter for optimizer in training process
+        :param gamma : float
+            - parameter for lr decay in training process
         """
         self.epoch = epoch
         self.save_model = True
@@ -91,8 +96,9 @@ class PGDtraining(BaseDefense):
         self.perturb_step_size = perturb_step_size
         self.lr = lr
         self.momentum = momentum
+        self.gamma = gamma
 
-    def train(self, device, train_loader, optimizer, epoch):
+    def train(self, device, train_loader, optimizer, epoch, scheduler):
         """
         Training process.
         """
@@ -121,6 +127,7 @@ class PGDtraining(BaseDefense):
                     epoch, batch_idx * len(data), len(train_loader.dataset),
                        100. * batch_idx / len(train_loader), loss.item(), 100 * correct/(10*bs)))
                 correct = 0
+        scheduler.step()
 
 
     def test(self, model, device, test_loader):
